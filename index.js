@@ -8,6 +8,7 @@ var ms = require('ms');
 var moment = require('moment');
 var utils = require('lockit-utils');
 var pwd = require('couch-pwd');
+var uuid = require('node-uuid');
 
 /**
  * Internal helper functions
@@ -251,6 +252,10 @@ Login.prototype.postLogin = function(req, res, next) {
       req.session.failedLoginAttempts = user.failedLoginAttempts;
       user.failedLoginAttempts = 0;
       user.accountLocked = false;
+
+      // create and set an authentication token
+      var authenticationToken = uuid.v4();
+      user.authenticationToken = authenticationToken;
 
       // save user to db
       adapter.update(user, function(updateErr, updatedUser) {

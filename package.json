@@ -25,7 +25,8 @@
     "couch-pwd": "0.0.1",
     "lockit-utils": "^0.5.1",
     "moment": "^2.8.1",
-    "ms": "^0.7.1"
+    "ms": "^0.7.1",
+    "node-uuid": "^1.4.1"
   },
   "devDependencies": {
     "body-parser": "^1.13.2",
