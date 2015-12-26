@@ -308,7 +308,7 @@ Login.prototype.postLogin = function(req, res, next) {
           utils.respond(req, res, {
             json: function(res) {
               return res.jsend({
-                "authenticationToken": user.authenticationToken;
+                "authenticationToken": user.authenticationToken
               });
             },
             html: function(res) {
