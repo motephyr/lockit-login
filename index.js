@@ -32,7 +32,7 @@ var Login = module.exports = function(config, adapter) {
   if (!(this instanceof Login)) {return new Login(config, adapter); }
 
   // call super constructor function
-  events.EventEmitter.call(this);
+  events. tter.call(this);
 
   this.config = config;
   this.adapter = adapter;
@@ -148,22 +148,52 @@ Login.prototype.postLogin = function(req, res, next) {
     if (err) {return next(err); }
 
     // no user or user email isn't verified yet -> render error message
-    if (!user || !user.emailVerified) {
+    if (!user) {
       error = 'Invalid user or password';
 
-      // send only JSON when REST is active
-      if (config.rest) {return res.json(403, {error: error}); }
+      // render view
+      utils.respond(req, res, {
+        json: function(res) {
+          console.log('JSON');
+          return res.json(403, {error: error});
+        },
+        html: function(res) {
+          console.log('HTML');
+          res.status(403)
+          return res.render(view, {
+            title: 'Login',
+            action: that.loginRoute + suffix,
+            error: error,
+            login: login,
+            basedir: req.app.get('views')
+          });
+        }
+      });  
+    }
+
+    // user is not verified
+    if (!user.emailVerified) {
+      error = 'Your account has not been verified';
 
       // render view
-      res.status(403);
-      res.render(view, {
-        title: 'Login',
-        action: that.loginRoute + suffix,
-        error: error,
-        login: login,
-        basedir: req.app.get('views')
-      });
-      return;
+      utils.respond(req, res, {
+        json: function(res) {
+          console.log('JSON');
+          return;
+        },
+        html: function(res) {
+          console.log('HTML');
+          res.status(403)
+          res.render(view, {
+            title: 'Login',
+            action: that.loginRoute + suffix,
+            error: error,
+            login: login,
+            basedir: req.app.get('views')
+          });
+          return;
+        }
+      });      
     }
 
     // check for too many failed login attempts
