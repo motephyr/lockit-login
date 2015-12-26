@@ -316,32 +316,37 @@ Login.prototype.postLogin = function(req, res, next) {
             }
           }); 
         }
+        else {
 
-        // two-factor authentication is enabled
+          // two-factor authentication is enabled
 
-        // send only JSON when REST is active
-        if (config.rest) {
-          return res.json({
-            twoFactorEnabled: true
-          });
+          // render view
+          utils.respond(req, res, {
+            json: function(res) {
+              res.jsend({
+                "twoFactorEnabled": true
+              });
+
+              return;
+            },
+            html: function(res) {
+              // custom or built-in view
+              var twoFactorView = config.login.views.twoFactor || join('two-factor');
+
+              // render two-factor authentication template
+              res.render(twoFactorView, {
+                title: 'Two-factor authentication',
+                action: that.twoFactorRoute,
+                basedir: req.app.get('views')
+              });
+
+              return;
+            }
+          }); 
         }
-
-        // custom or built-in view
-        var twoFactorView = config.login.views.twoFactor || join('two-factor');
-
-        // render two-factor authentication template
-        res.render(twoFactorView, {
-          title: 'Two-factor authentication',
-          action: that.twoFactorRoute,
-          basedir: req.app.get('views')
-        });
-
       });
-
     });
-
   });
-
 };
 
 
