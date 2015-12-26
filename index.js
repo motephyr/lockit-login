@@ -9,6 +9,7 @@ var moment = require('moment');
 var utils = require('lockit-utils');
 var pwd = require('couch-pwd');
 var uuid = require('node-uuid');
+var jsend = require('express-jsend');
 
 /**
  * Internal helper functions
@@ -32,7 +33,7 @@ var Login = module.exports = function(config, adapter) {
   if (!(this instanceof Login)) {return new Login(config, adapter); }
 
   // call super constructor function
-  events. tter.call(this);
+  events.EventEmitter.call(this);
 
   this.config = config;
   this.adapter = adapter;
@@ -154,11 +155,9 @@ Login.prototype.postLogin = function(req, res, next) {
       // render view
       utils.respond(req, res, {
         json: function(res) {
-          console.log('JSON');
           return res.json(403, {error: error});
         },
         html: function(res) {
-          console.log('HTML');
           res.status(403)
           return res.render(view, {
             title: 'Login',
@@ -178,11 +177,9 @@ Login.prototype.postLogin = function(req, res, next) {
       // render view
       utils.respond(req, res, {
         json: function(res) {
-          console.log('JSON');
           return;
         },
         html: function(res) {
-          console.log('HTML');
           res.status(403)
           res.render(view, {
             title: 'Login',
@@ -307,15 +304,17 @@ Login.prototype.postLogin = function(req, res, next) {
           // emit 'login' event
           that.emit('login', updatedUser, res, target);
 
-          // let lockit handle the response
-          if (config.login.handleResponse) {
-            // send only JSON when REST is active
-            if (config.rest) {return res.send(204); }
-
-            // redirect to target url
-            res.redirect(target);
-          }
-          return;
+          // render view
+          utils.respond(req, res, {
+            json: function(res) {
+              return res.jsend({
+                "authenticationToken": user.authenticationToken;
+              });
+            },
+            html: function(res) {
+              return res.redirect(target);
+            }
+          }); 
         }
 
         // two-factor authentication is enabled
