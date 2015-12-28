@@ -11,6 +11,8 @@ var pwd = require('couch-pwd');
 var uuid = require('node-uuid');
 var jsend = require('express-jsend');
 
+console.log("node_modules")
+
 /**
  * Internal helper functions
  */
@@ -55,7 +57,7 @@ var Login = module.exports = function(config, adapter) {
   router.get(this.loginRoute, this.getLogin.bind(this));
   router.post(this.loginRoute, this.postLogin.bind(this));
   router.post(this.twoFactorRoute, this.postTwoFactor.bind(this));
-  router.post(logoutRoute, utils.restrict(config), this.postLogout.bind(this));
+  router.post(logoutRoute, utils.authenticatedOnly(config), this.postLogout.bind(this));
   this.router = router;
 
 };
@@ -281,8 +283,10 @@ Login.prototype.postLogin = function(req, res, next) {
       user.accountLocked = false;
 
       // create and set an authentication token
-      var authenticationToken = uuid.v4();
-      user.authenticationToken = authenticationToken;
+      if (!user.authenticationToken) {
+        var authenticationToken = uuid.v4();
+        user.authenticationToken = authenticationToken;
+      }
 
       // save user to db
       adapter.update(user, function(updateErr, updatedUser) {
@@ -319,7 +323,7 @@ Login.prototype.postLogin = function(req, res, next) {
                   userObject[column] = updatedUser[column];
                 }
               }
-              
+
               return res.jsend(userObject);
             },
             html: function(res) {
@@ -455,19 +459,26 @@ Login.prototype.postLogout = function(req, res) {
 
     // let lockit handle the response
     if (config.login.handleResponse) {
+      // render view
+      utils.respond(req, res, {
+        json: function(res) {
+          res.jsend("Logout successful");
 
-      // send JSON when REST is active
-      if (config.rest) {return res.send(204); }
+          return;
+        },
+        html: function(res) {
+          // custom or built-in view
+          var view = config.login.views.loggedOut || join('get-logout');
 
-      // custom or built-in view
-      var view = config.login.views.loggedOut || join('get-logout');
+          // reder logout success template
+          res.render(view, {
+            title: 'Logout successful',
+            basedir: req.app.get('views')
+          });
 
-      // reder logout success template
-      res.render(view, {
-        title: 'Logout successful',
-        basedir: req.app.get('views')
-      });
-
+          return;
+        }
+      }); 
     }
   });
 
