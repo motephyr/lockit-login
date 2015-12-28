@@ -307,9 +307,20 @@ Login.prototype.postLogin = function(req, res, next) {
           // render view
           utils.respond(req, res, {
             json: function(res) {
-              return res.jsend({
-                "authenticationToken": user.authenticationToken
-              });
+              // prepare the user object for return
+              var userObject = {
+                "id": updatedUser._id,
+                "email": updatedUser.email,
+                "authenticationToken": updatedUser.authenticationToken
+              };
+              // add user columns
+              if (config.userColumns) {
+                for (var column in config.userColumns) {
+                  userObject[column] = updatedUser[column];
+                }
+              }
+              
+              return res.jsend(userObject);
             },
             html: function(res) {
               return res.redirect(target);
