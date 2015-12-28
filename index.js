@@ -11,8 +11,6 @@ var pwd = require('couch-pwd');
 var uuid = require('node-uuid');
 var jsend = require('express-jsend');
 
-console.log("node_modules")
-
 /**
  * Internal helper functions
  */
@@ -438,48 +436,86 @@ Login.prototype.postTwoFactor = function(req, res, next) {
  * @param {Function} next
  */
 Login.prototype.postLogout = function(req, res) {
-
   var config = this.config;
+  var adapter = this.adapter;
   var that = this;
 
-  // save values for event emitter
-  var user = {
-    name: req.session.name,
-    email: req.session.email
-  };
-
-  // destroy the session
-  utils.destroy(req, function() {
-    // clear local variables - they were set before the session was destroyed
-    res.locals.name = null;
-    res.locals.email = null;
-
-    // emit 'logout' event
-    that.emit('logout', user, res);
-
-    // let lockit handle the response
-    if (config.login.handleResponse) {
-      // render view
-      utils.respond(req, res, {
-        json: function(res) {
-          res.jsend("Logout successful");
-
-          return;
-        },
-        html: function(res) {
-          // custom or built-in view
-          var view = config.login.views.loggedOut || join('get-logout');
-
-          // reder logout success template
-          res.render(view, {
-            title: 'Logout successful',
-            basedir: req.app.get('views')
-          });
-
-          return;
+  var respondLogout = function(err, data, req, res) {
+    // render view
+    utils.respond(req, res, {
+      json: function(res) {
+        if (err) {
+          res.jerror(err);
         }
-      }); 
-    }
-  });
+        else {
+          res.jsend("Logout successful");
+        }
+
+        return;
+      },
+      html: function(res) {
+        // TODO handle HTML error
+
+        // custom or built-in view
+        var view = config.login.views.loggedOut || join('get-logout');
+
+        // reder logout success template
+        res.render(view, {
+          title: 'Logout successful',
+          basedir: req.app.get('views')
+        });
+
+        return;
+      }
+    }); 
+  }
+
+  var token = utils.token(req);
+  if (token) {
+    // logout by token
+    adapter.find('authenticationToken', token, function(err, user) {  
+      if (err) {
+        respondLogout('Unable to find user with token', null, req, res);
+      }
+      else {
+        // clear the token
+        user.authenticationToken = null;
+        
+        // save updated user to db
+        adapter.update(user, function(err, user) {
+          if (err) {
+            respondLogout('Unable to save user with cleared token', null, req, res);
+          }
+          else {
+            respondLogout(null, 'Logout successful', req, res);
+          }
+        });
+      }
+    });
+  }
+  else {
+    // logout from the session
+
+    // save values for event emitter
+    var user = {
+      name: req.session.name,
+      email: req.session.email
+    };
+
+    // destroy the session
+    utils.destroy(req, function() {
+      // clear local variables - they were set before the session was destroyed
+      res.locals.name = null;
+      res.locals.email = null;
+
+      // emit 'logout' event
+      that.emit('logout', user, res);
+
+      // let lockit handle the response
+      if (config.login.handleResponse) {
+        respondLogout(null, 'Logout successful', req, res);
+      }
+    });
+  }
 
 };
