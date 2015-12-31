@@ -300,7 +300,7 @@ Login.prototype.postLogin = function(req, res, next) {
 
           // render view
           res.format({
-            "json": function(res) {
+            "json": function() {
               // prepare the user object for return
               var userObject = {
                 "id": updatedUser._id,
@@ -316,7 +316,7 @@ Login.prototype.postLogin = function(req, res, next) {
 
               return res.jsend(userObject);
             },
-            "html": function(res) {
+            "html": function() {
               // user is now logged in
               req.session.loggedIn = true;
 
@@ -334,15 +334,15 @@ Login.prototype.postLogin = function(req, res, next) {
           // two-factor authentication is enabled
 
           // render view
-          utils.respond(req, res, {
-            json: function(res) {
+          res.format({
+            json: function() {
               res.jsend({
                 "twoFactorEnabled": true
               });
 
               return;
             },
-            html: function(res) {
+            html: function() {
               // custom or built-in view
               var twoFactorView = config.login.views.twoFactor || join('two-factor');
 
@@ -442,8 +442,8 @@ Login.prototype.postLogout = function(req, res) {
 
   var respondLogout = function(err, data, req, res) {
     // render view
-    utils.respond(req, res, {
-      json: function(res) {
+    res.format({
+      "json": function() {
         if (err) {
           res.jerror(err);
         }
@@ -453,7 +453,7 @@ Login.prototype.postLogout = function(req, res) {
 
         return;
       },
-      html: function(res) {
+      "html": function() {
         // TODO handle HTML error
 
         // custom or built-in view
