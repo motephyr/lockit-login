@@ -153,11 +153,11 @@ Login.prototype.postLogin = function(req, res, next) {
       error = 'Invalid user or password';
 
       // render view
-      utils.respond(req, res, {
-        json: function(res) {
+      res.format({
+        "json": function(res) {
           return res.json(403, {error: error});
         },
-        html: function(res) {
+        "html": function(res) {
           res.status(403)
           return res.render(view, {
             title: 'Login',
@@ -175,11 +175,11 @@ Login.prototype.postLogin = function(req, res, next) {
       error = 'Your account has not been verified';
 
       // render view
-      utils.respond(req, res, {
-        json: function(res) {
+      res.format{
+        "json": function(res) {
           return;
         },
-        html: function(res) {
+        "html": function(res) {
           res.status(403)
           res.render(view, {
             title: 'Login',
@@ -276,7 +276,6 @@ Login.prototype.postLogin = function(req, res, next) {
       user.currentLoginIp = req.ip;
 
       // set failed login attempts to zero but save them in the session
-      req.session.failedLoginAttempts = user.failedLoginAttempts;
       user.failedLoginAttempts = 0;
       user.accountLocked = false;
 
@@ -290,25 +289,18 @@ Login.prototype.postLogin = function(req, res, next) {
       adapter.update(user, function(updateErr, updatedUser) {
         if (updateErr) {return next(updateErr); }
 
-        // create session and save the name and email address
-        req.session.name = updatedUser.name;
-        req.session.email = updatedUser.email;
-
         // check if two-factor authentication is enabled
         if (!updatedUser.twoFactorEnabled) {
 
           // get redirect url
           var target = req.query.redirect || '/';
 
-          // user is now logged in
-          req.session.loggedIn = true;
-
           // emit 'login' event
           that.emit('login', updatedUser, res, target);
 
           // render view
-          utils.respond(req, res, {
-            json: function(res) {
+          res.format({
+            "json": function(res) {
               // prepare the user object for return
               var userObject = {
                 "id": updatedUser._id,
@@ -324,7 +316,15 @@ Login.prototype.postLogin = function(req, res, next) {
 
               return res.jsend(userObject);
             },
-            html: function(res) {
+            "html": function(res) {
+              // user is now logged in
+              req.session.loggedIn = true;
+
+              // create session and save the name and email address
+              req.session.name = updatedUser.name;
+              req.session.email = updatedUser.email;
+
+              req.session.failedLoginAttempts = user.failedLoginAttempts;
               return res.redirect(target);
             }
           }); 
