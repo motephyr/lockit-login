@@ -175,7 +175,7 @@ Login.prototype.postLogin = function(req, res, next) {
       error = 'Your account has not been verified';
 
       // render view
-      res.format{
+      res.format({
         "json": function(res) {
           return;
         },
