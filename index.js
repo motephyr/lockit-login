@@ -153,7 +153,7 @@ Login.prototype.postLogin = function(req, res, next) {
       error = 'Invalid user or password';
 
       // render view
-      res.format({
+      return res.format({
         json: function() {
           return res.status(403).jerror(new Error(error));
         },
@@ -175,7 +175,7 @@ Login.prototype.postLogin = function(req, res, next) {
       error = 'Your account has not been verified';
 
       // render view
-      res.format({
+      return res.format({
         json: function() {
           return res.status(403).jsend(new Error(error));
         },
@@ -299,7 +299,7 @@ Login.prototype.postLogin = function(req, res, next) {
           that.emit('login', updatedUser, res, target);
 
           // render view
-          res.format({
+          return res.format({
             json: function() {
               // prepare the user object for return
               var userObject = {
@@ -334,7 +334,7 @@ Login.prototype.postLogin = function(req, res, next) {
           // two-factor authentication is enabled
 
           // render view
-          res.format({
+          return res.format({
             json: function() {
               res.jsend({
                 "twoFactorEnabled": true
