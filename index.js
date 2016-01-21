@@ -154,10 +154,10 @@ Login.prototype.postLogin = function(req, res, next) {
 
       // render view
       res.format({
-        "json": function(res) {
-          return res.json(403, {error: error});
+        json: function() {
+          return res.status(403).jerror(new Error(error));
         },
-        "html": function(res) {
+        html: function() {
           res.status(403)
           return res.render(view, {
             title: 'Login',
@@ -176,10 +176,10 @@ Login.prototype.postLogin = function(req, res, next) {
 
       // render view
       res.format({
-        "json": function(res) {
-          return;
+        json: function() {
+          return res.status(403).jsend(new Error(error));
         },
-        "html": function(res) {
+        html: function() {
           res.status(403)
           res.render(view, {
             title: 'Login',
@@ -198,7 +198,7 @@ Login.prototype.postLogin = function(req, res, next) {
       error = 'The account is temporarily locked';
 
       // send only JSON when REST is active
-      if (config.rest) {return res.json(403, {error: error}); }
+      if (config.rest) {return res.status(403).jsend(new Error(error)); }
 
       // render view
       res.status(403);
@@ -300,7 +300,7 @@ Login.prototype.postLogin = function(req, res, next) {
 
           // render view
           res.format({
-            "json": function() {
+            json: function() {
               // prepare the user object for return
               var userObject = {
                 "id": updatedUser._id,
@@ -316,7 +316,7 @@ Login.prototype.postLogin = function(req, res, next) {
 
               return res.jsend(userObject);
             },
-            "html": function() {
+            html: function() {
               // user is now logged in
               req.session.loggedIn = true;
 
