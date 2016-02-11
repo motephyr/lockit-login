@@ -191,7 +191,7 @@ Login.prototype.postLogin = function(req, res, next) {
     pwd.hash(password, user.salt, function(hashErr, hash) {
       if (hashErr) {return next(hashErr); }
 
-      if (hash !== user.derived_key) {
+      if (hash !== user.derivedKey) {
         // set the default error message
         var errorMessage = 'Invalid user or password';
 
